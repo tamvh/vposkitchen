@@ -3,6 +3,7 @@
 #include <QtWebSockets/qwebsocket.h>
 #include <QtCore/QDebug>
 #include <QJsonObject>
+#include <QUuid>
 QT_USE_NAMESPACE
 
 enum packet_content_type{
@@ -27,11 +28,14 @@ Server::Server(quint16 port, QObject *parent):
     m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Central Server"), QWebSocketServer::NonSecureMode, this)),
     m_clients()
 {
+     wsClient = 0;
+
     if (m_pWebSocketServer->listen(QHostAddress::Any, port)) {
         qDebug() << "start server...";
         connect(m_pWebSocketServer, &QWebSocketServer::newConnection, this, &Server::onNewConnection);
         connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &Server::closed);
     }
+    initialWebSocket();
 }
 
 Server::~Server() {
@@ -105,6 +109,24 @@ void Server::processTextMessage(QString message)
     }
 }
 
+void Server::send_message(int to_appid, const QString &message) {
+    M_WS l_ws;
+    WS::iterator iLookup;
+    iLookup = list_client.find(to_appid);
+    if(iLookup != list_client.end()) {
+        l_ws = iLookup.value();
+    }
+
+    for(int i = 0;i < l_ws.size(); i++)
+    {
+        if(l_ws.at(i)) {
+            l_ws.at(i)->sendTextMessage(message);
+        } else {
+            l_ws.removeAll(l_ws.at(i));
+        }
+    }
+}
+
 void Server::processBinaryMessage(QByteArray message)
 {
     QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
@@ -136,4 +158,50 @@ void Server::socketDisconnected()
         }
     }
     QString str = "";
+}
+
+void Server::initialWebSocket(bool forceStop)
+{
+    qDebug() << "initialWebSocket ... forcestop=" << forceStop << "\n";
+//    QString deviceId = QString(QUuid::createUuid().toRfc4122().toHex());
+    QString deviceId = "ffffffffffffffffffffffffffffffff";
+    if( forceStop && wsClient )
+    {
+        wsClient->stop();
+        wsClient->wait(10000);
+
+        delete wsClient;
+        wsClient = 0;
+    }
+
+    if (wsClient == 0)
+    {
+        QUrl wsUrl = QUrl("wss://gbcstaging.zing.vn/vpos/ntf/");
+        QUrl httpUrl = QUrl("https://gbcstaging.zing.vn/vpos/api/common/");
+        QString merchant_code = "maybanhangtudong";
+
+        wsClient = new WSClient(wsUrl, httpUrl, merchant_code, deviceId, true, 0);
+
+        QObject::connect(wsClient, SIGNAL(textMessageReceived(QString)), this, SLOT(onCloudNotify(const QString&)));
+        QObject::connect(wsClient, &WSClient::connected, this, [=](){qDebug() << "cloud Connected";});
+        QObject::connect(wsClient, &WSClient::closed, this, [=](){qDebug() << "cloud Disconnected";});
+
+        wsClient->start();
+    }
+}
+
+void Server::onNotify(const QString &message)
+{
+    QString notifymsg = CommonFunction::getNotifyValue(message, "msg");
+    qDebug() << "notifymsg: " << notifymsg<< ", data: " << message;
+
+}
+
+
+void Server::onCloudNotify(const QString &message)
+{
+    QString notifymsg = CommonFunction::getNotifyValue(message, "msg");
+    QString notifydt = CommonFunction::getNotifyValue(message, "dt");
+    qDebug() << "notifymsg: " << notifymsg<< ", data: " << notifydt;
+    this->send_message(APPID::PRINTER, notifydt);
 }

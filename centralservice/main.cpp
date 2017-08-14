@@ -3,6 +3,8 @@
 #include <QtCore/QCommandLineOption>
 #include "server.h"
 #include "udpbrdcastserver.h"
+#include "wsclient.h"
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -10,6 +12,7 @@ int main(int argc, char *argv[])
     UdpBrdcastServer *_udp = new UdpBrdcastServer();
     Server *server = new Server(port);
     QObject::connect(server, &Server::closed, &a, &QCoreApplication::quit);
-
     return a.exec();
 }
+
+
