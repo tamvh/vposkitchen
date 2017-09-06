@@ -58,6 +58,26 @@ bool Prntdataformat::codeText(const QString &str, Justify justify, int pos)
     return true;
 }
 
+void Prntdataformat::emphasized_on()
+{
+    quint8 result[3];
+    result[0] = ESC;
+    result[1] = 69;
+    result[2] = 0xF;
+
+    _prntCode.append((const char *)result, sizeof(result) /sizeof(quint8));
+}
+
+void Prntdataformat::emphasized_off()
+{
+    quint8 result[3];
+    result[0] = ESC;
+    result[1] = 69;
+    result[2] = 0;
+
+    _prntCode.append((const char *)result, sizeof(result) /sizeof(quint8));
+}
+
 // print barcode
 bool Prntdataformat::codeBarcode(const QString &barcode, int width, int height, Justify justify, int pos)
 {

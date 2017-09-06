@@ -163,8 +163,9 @@ void Server::socketDisconnected()
 void Server::initialWebSocket(bool forceStop)
 {
     qDebug() << "initialWebSocket ... forcestop=" << forceStop << "\n";
-//    QString deviceId = QString(QUuid::createUuid().toRfc4122().toHex());
-    QString deviceId = "ffffffffffffffffffffffffffffffff";
+    QString deviceId = QString(QUuid::createUuid().toRfc4122().toHex());
+//    QString deviceId = "ffffffffffffffffffffffffffffffff";
+
     if( forceStop && wsClient )
     {
         wsClient->stop();

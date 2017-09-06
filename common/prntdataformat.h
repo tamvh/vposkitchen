@@ -76,6 +76,10 @@ public:
     // print string, at pos, alight=left/center/right
     bool codeText(const QString &str, Justify justify=Justify_none, int pos=-1);
 
+    void emphasized_on();
+    void emphasized_off();
+    void prntUnderline(Underline mode);
+
     // print barcode
     bool codeBarcode(const QString &barcode, int width, int height, Justify justify=Justify_none, int pos=-1);
 
@@ -196,7 +200,6 @@ private:
 
     void prntInitial(int codepage=-1);
     void prntCodetable(quint8 codepage);
-    void prntUnderline(Underline mode);
     void prntTextAlight(quint8 justify);
     void prntTextHorztab(quint8 pos);
     void prntText(QString text);
