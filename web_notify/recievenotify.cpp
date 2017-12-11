@@ -149,12 +149,6 @@ void RecieveNotify::printBill(const QJsonObject &jso) {
 
 
     pdf.codeChars('-', PAGESZ, pdf.Justify_left);
-
-//    pdf.codeLine(QString("TONG:%1").arg(total_money), pdf.Justify_left, TAB4-total_money.length());
-
-//    pdf.codeChars('-', PAGESZ, pdf.Justify_left);
-//    pdf.codeFeedline(1);
-
     pdf.codeBarcode(barcode, 2, 80, pdf.Justify_center);
     pdf.codeFeedline(1);
 
